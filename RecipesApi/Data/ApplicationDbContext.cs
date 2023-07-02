@@ -12,4 +12,6 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<Ingredient> Ingredients { get; set; }
+    public DbSet<Instruction> Instructions { get; set; }
 }

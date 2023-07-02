@@ -10,9 +10,9 @@ public class Recipe
     [Required]
     public string? Description { get; set; }
     [Required]
-    public string? Instructions { get; set; }
+    public ICollection<Instruction>? Instructions { get; set; }
     [Required]
-    public string? Ingredients { get; set; }
+    public ICollection<Ingredient>? Ingredients { get; set; }
     [Required]
     public string? Photo { get; set; }
     [Required]

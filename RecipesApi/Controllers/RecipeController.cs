@@ -17,16 +17,23 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IEnumerable<Recipe>> GetRecipe()
+    public async Task<IEnumerable<Recipe>> GetAllRecipes()
     {
         IEnumerable<Recipe> recipes = await _recipesRepository.AllRecipes();
         return recipes;
+    }
+
+    [HttpGet("{id}")]
+    public async Task<Recipe> GetSpecificRecipe(int id)
+    {
+        Recipe recipe = await _recipesRepository.SpecificRecipe(id);
+        return recipe;
     }
 
     [HttpPost]
     public IActionResult PostRecipe(Recipe recipe)
     {
         _recipesRepository.AddRecipe(recipe);
-        return CreatedAtAction(nameof(GetRecipe), new { id = recipe.RecipeId }, recipe);
+        return CreatedAtAction(nameof(GetAllRecipes), new { id = recipe.RecipeId }, recipe);
     }
 }

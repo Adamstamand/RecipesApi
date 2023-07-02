@@ -23,7 +23,12 @@ public class RecipesRepository : IRecipesRepository
 
     public async Task<IEnumerable<Recipe>> AllRecipes()
     {
-        return await _context.Recipes.ToListAsync();
+        return await _context.Recipes.Include("Ingredients").Include("Instructions").ToListAsync();
+    }
+
+    public async Task<Recipe> SpecificRecipe(int id)
+    {
+        return await _context.Recipes.Include("Ingredients").Include("Instructions").FirstAsync(recipe => recipe.RecipeId == id);
     }
 
     public void RemoveRecipe()
