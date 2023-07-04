@@ -1,6 +1,6 @@
-﻿using RecipesApi.Models;
+﻿using RecipesCore.Entities;
 
-namespace RecipesApi.Interfaces;
+namespace RecipesCore.RepositoryContracts;
 
 public interface IRecipesRepository
 {

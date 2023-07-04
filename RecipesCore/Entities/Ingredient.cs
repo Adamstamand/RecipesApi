@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RecipesApi.Models;
+namespace RecipesCore.Entities;
 
-public class Instruction
+public class Ingredient
 {
     public int Id { get; set; }
     [Required]
     public string? Words { get; set; }
-    public int Position { get; set; }
 }

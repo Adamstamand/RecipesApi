@@ -1,10 +1,10 @@
-﻿using RecipesApi.Models;
+﻿using RecipesCore.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
-using RecipesApi.Interfaces;
-using RecipesApi.Data;
+using RecipesCore.RepositoryContracts;
+using RecipesInfrastructure.Data;
 
-namespace RecipesApi.Repository;
+namespace RecipesInfrastructure.Repository;
 
 public class RecipesRepository : IRecipesRepository
 {

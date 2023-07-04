@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RecipesApi.Interfaces;
-using RecipesApi.Models;
+using RecipesCore.RepositoryContracts;
+using RecipesCore.Entities;
 
 namespace RecipesApi.Controllers;
 
