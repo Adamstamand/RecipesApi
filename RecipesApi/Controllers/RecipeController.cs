@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RecipesCore.RepositoryContracts;
 using RecipesCore.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RecipesApi.Controllers;
 
@@ -9,7 +10,6 @@ namespace RecipesApi.Controllers;
 public class RecipeController : ControllerBase
 {
     private readonly IRecipesRepository _recipesRepository;
-
 
     public RecipeController(IRecipesRepository recipesRepository)
     {
@@ -24,6 +24,7 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<Recipe> GetSpecificRecipe(int id)
     {
         Recipe recipe = await _recipesRepository.SpecificRecipe(id);
@@ -31,6 +32,7 @@ public class RecipeController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public IActionResult PostRecipe(Recipe recipe)
     {
         _recipesRepository.AddRecipe(recipe);

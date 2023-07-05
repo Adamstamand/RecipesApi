@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RecipesCore.DTOs;
 using RecipesCore.Identity;
+using RecipesCore.ServiceContracts;
 
 namespace RecipesApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/")]
 [ApiController]
 [AllowAnonymous]
 public class AccountController : ControllerBase
@@ -14,33 +15,27 @@ public class AccountController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
+    private readonly IJwtService _jwtService;
 
-    public AccountController(UserManager<ApplicationUser> userManager, 
-        SignInManager<ApplicationUser> signInManager, 
-        RoleManager<ApplicationRole> roleManager)
+    public AccountController(UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        RoleManager<ApplicationRole> roleManager, IJwtService jwtService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _roleManager = roleManager;
+        _jwtService = jwtService;
+        
     }
 
 
-    [HttpPost]
-    public async Task<ActionResult<ApplicationUser>> PostRegister(RegisterDTO registerDTO)
+    [HttpPost("register")]
+    public async Task<IActionResult> PostRegister(RegisterDTO registerDTO)
     {
-        if (!ModelState.IsValid)
-        {
-            string errorMessage = string.Join(" | ", 
-                ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage));
-            return Problem(errorMessage);
-        }
-
         ApplicationUser user = new()
         {
             Email = registerDTO.Email,
-            UserName = registerDTO.Email,
+            UserName = registerDTO.Email
         };
 
         IdentityResult result = await _userManager.CreateAsync(user, registerDTO.Password!);
@@ -48,13 +43,45 @@ public class AccountController : ControllerBase
         if (result.Succeeded)
         {
             await _signInManager.SignInAsync(user, isPersistent: false);
-            return Ok(user);
+
+            var authenticationResponse = _jwtService.CreateJwtToken(user);
+            user.RefreshToken = authenticationResponse.RefreshToken;
+            user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
+            await _userManager.UpdateAsync(user);
+
+            return Ok(authenticationResponse);
         }
-        else
+
+        Array errorMessage = result.Errors.Select(e => e.Description).ToArray();
+        return Unauthorized(errorMessage);
+    }
+
+
+    [HttpPost("login")]
+    public async Task<IActionResult> PostLogIn(LogInDTO logInDTO)
+    {
+        var result = await _signInManager.PasswordSignInAsync(logInDTO.Email!,
+            logInDTO.Password!, false, false);
+
+        if (result.Succeeded)
         {
-            string errorMessage = string.Join(" | ",
-                result.Errors.Select(e => e.Description));
-            return Problem(errorMessage);
+            ApplicationUser? user = await _userManager
+                .FindByEmailAsync(logInDTO.Email!);
+            var authenticationResponse = _jwtService.CreateJwtToken(user!);
+            user!.RefreshToken = authenticationResponse.RefreshToken;
+            user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
+            await _userManager.UpdateAsync(user);
+            return Ok(authenticationResponse);
         }
+
+        return Unauthorized("Invalid email or password");
+    }
+
+
+    [HttpGet("logout")]
+    public async Task<IActionResult> GetLogOut()
+    {
+        await _signInManager.SignOutAsync();
+        return NoContent();
     }
 }

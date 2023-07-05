@@ -5,6 +5,11 @@ using RecipesInfrastructure.Data;
 using RecipesCore.Identity;
 using RecipesCore.RepositoryContracts;
 using RecipesInfrastructure.Repository;
+using RecipesCore.ServiceContracts;
+using RecipesCore.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var MyAllowSpecificOrigins = "_MyAllowSubdomainPolicy";
 
@@ -18,9 +23,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRecipesRepository, RecipesRepository>();
+builder.Services.AddTransient<IJwtService, JwtService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-       options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+       options => options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
 
 builder.Services.AddCors(options =>
 {
@@ -44,8 +50,27 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     .AddUserStore<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>()
     .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
 
-
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
