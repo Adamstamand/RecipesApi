@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using RecipesCore.DTOs;
 using RecipesCore.Identity;
 using RecipesCore.ServiceContracts;
+using RecipesInfrastructure.Migrations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace RecipesApi.Controllers;
 
@@ -25,7 +28,7 @@ public class AccountController : ControllerBase
         _signInManager = signInManager;
         _roleManager = roleManager;
         _jwtService = jwtService;
-        
+
     }
 
 
@@ -68,8 +71,10 @@ public class AccountController : ControllerBase
             ApplicationUser? user = await _userManager
                 .FindByEmailAsync(logInDTO.Email!);
             var authenticationResponse = _jwtService.CreateJwtToken(user!);
+
             user!.RefreshToken = authenticationResponse.RefreshToken;
             user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
+
             await _userManager.UpdateAsync(user);
             return Ok(authenticationResponse);
         }
@@ -83,5 +88,28 @@ public class AccountController : ControllerBase
     {
         await _signInManager.SignOutAsync();
         return NoContent();
+    }
+
+    [HttpPost("new-token")]
+    public async Task<IActionResult> GenerateNewToken(TokenModel tokenModel)
+    {
+        ClaimsPrincipal? principal = _jwtService.GetPrincipalFromJwtToken(tokenModel.Token!);
+        if (principal == null) return BadRequest("Invalid Jwt access token");
+
+        string? userName = principal.FindFirstValue(JwtRegisteredClaimNames.Name);
+        if (userName is null) return BadRequest("UserName not found in token");
+
+        ApplicationUser? user = await _userManager.FindByNameAsync(userName);
+        if (user == null || user.RefreshToken != tokenModel.RefreshToken || user.RefreshTokenExpiration <= DateTime.Now)
+        {
+            return BadRequest("Invalid refresh token");
+        }
+
+        AuthenticationResponseDTO authenticationResponse = _jwtService.CreateJwtToken(user);
+        user.RefreshToken = authenticationResponse.RefreshToken;
+        user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
+        await _userManager.UpdateAsync(user);
+
+        return Ok(authenticationResponse);
     }
 }

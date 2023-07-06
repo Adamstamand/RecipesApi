@@ -59,6 +59,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters()
         {
+            ClockSkew = TimeSpan.Zero,
             ValidateAudience = true,
             ValidAudience = builder.Configuration["Jwt:Audience"],
             ValidateIssuer = true,
