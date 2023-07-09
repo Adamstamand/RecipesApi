@@ -24,8 +24,6 @@ public class JwtService : IJwtService
 
         Claim[] claims = new Claim[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
 
             new Claim(JwtRegisteredClaimNames.Iat, DateTime.Now.ToString()),
@@ -50,7 +48,8 @@ public class JwtService : IJwtService
         return new AuthenticationResponseDTO 
         { 
             Token = token, 
-            UserName = user.UserName, 
+            UserId = user.Id,
+            UserName = user.UserName,
             Expiration = expirationDate,
             RefreshToken = GenerateRefreshToken(),
             RefreshTokenExpiration = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:Expiration_Minutes"]))

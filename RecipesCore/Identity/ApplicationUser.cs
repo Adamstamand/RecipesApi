@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using RecipesCore.Entities;
 
 namespace RecipesCore.Identity;
 

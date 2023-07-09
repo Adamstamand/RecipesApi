@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RecipesInfrastructure.Data;
 
@@ -11,9 +12,11 @@ using RecipesInfrastructure.Data;
 namespace RecipesInfrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230708150400_AddedRecipesToUser")]
+    partial class AddedRecipesToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,6 +183,9 @@ namespace RecipesInfrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RecipeId"));
 
+                    b.Property<Guid?>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -197,30 +203,9 @@ namespace RecipesInfrastructure.Migrations
 
                     b.HasKey("RecipeId");
 
+                    b.HasIndex("ApplicationUserId");
+
                     b.ToTable("Recipes");
-                });
-
-            modelBuilder.Entity("RecipesCore.Entities.UserRecipe", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("RecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserRecipes");
                 });
 
             modelBuilder.Entity("RecipesCore.Identity.ApplicationRole", b =>
@@ -388,19 +373,11 @@ namespace RecipesInfrastructure.Migrations
                         .HasForeignKey("RecipeId");
                 });
 
-            modelBuilder.Entity("RecipesCore.Entities.UserRecipe", b =>
+            modelBuilder.Entity("RecipesCore.Entities.Recipe", b =>
                 {
-                    b.HasOne("RecipesCore.Entities.Recipe", "Recipe")
-                        .WithMany()
-                        .HasForeignKey("RecipeId");
-
-                    b.HasOne("RecipesCore.Identity.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Recipe");
-
-                    b.Navigation("User");
+                    b.HasOne("RecipesCore.Identity.ApplicationUser", null)
+                        .WithMany("Recipes")
+                        .HasForeignKey("ApplicationUserId");
                 });
 
             modelBuilder.Entity("RecipesCore.Entities.Recipe", b =>
@@ -408,6 +385,11 @@ namespace RecipesInfrastructure.Migrations
                     b.Navigation("Ingredients");
 
                     b.Navigation("Instructions");
+                });
+
+            modelBuilder.Entity("RecipesCore.Identity.ApplicationUser", b =>
+                {
+                    b.Navigation("Recipes");
                 });
 #pragma warning restore 612, 618
         }

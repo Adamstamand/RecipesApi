@@ -15,4 +15,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<Instruction> Instructions { get; set; }
+    public DbSet<UserRecipe> UserRecipes { get; set; }
 }

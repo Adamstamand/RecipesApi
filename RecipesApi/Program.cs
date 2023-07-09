@@ -10,6 +10,7 @@ using RecipesCore.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.HttpLogging;
 
 var MyAllowSpecificOrigins = "_MyAllowSubdomainPolicy";
 
@@ -73,6 +74,13 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = HttpLoggingFields.All;
+    logging.RequestHeaders.Add("Authorization");
+    logging.ResponseHeaders.Add("WWW-Authenticate");
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -81,6 +89,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpLogging();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

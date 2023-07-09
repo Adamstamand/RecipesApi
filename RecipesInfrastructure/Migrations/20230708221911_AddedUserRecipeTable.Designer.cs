@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RecipesInfrastructure.Data;
 
@@ -11,9 +12,11 @@ using RecipesInfrastructure.Data;
 namespace RecipesInfrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230708221911_AddedUserRecipeTable")]
+    partial class AddedUserRecipeTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -200,29 +203,6 @@ namespace RecipesInfrastructure.Migrations
                     b.ToTable("Recipes");
                 });
 
-            modelBuilder.Entity("RecipesCore.Entities.UserRecipe", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("RecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserRecipes");
-                });
-
             modelBuilder.Entity("RecipesCore.Identity.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -386,21 +366,6 @@ namespace RecipesInfrastructure.Migrations
                     b.HasOne("RecipesCore.Entities.Recipe", null)
                         .WithMany("Instructions")
                         .HasForeignKey("RecipeId");
-                });
-
-            modelBuilder.Entity("RecipesCore.Entities.UserRecipe", b =>
-                {
-                    b.HasOne("RecipesCore.Entities.Recipe", "Recipe")
-                        .WithMany()
-                        .HasForeignKey("RecipeId");
-
-                    b.HasOne("RecipesCore.Identity.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Recipe");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RecipesCore.Entities.Recipe", b =>
