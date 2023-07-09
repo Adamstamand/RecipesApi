@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RecipesCore.Validations;
+using System.ComponentModel.DataAnnotations;
 
 namespace RecipesCore.Entities;
 
@@ -17,4 +18,7 @@ public class Recipe
     public string? Photo { get; set; }
     [Required]
     public int TimeToPrepare { get; set; }
+    [Required]
+    [PrivacyValidator]
+    public string? Privacy { get; set; }
 }

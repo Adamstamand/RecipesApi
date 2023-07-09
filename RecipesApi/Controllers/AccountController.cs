@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RecipesCore.DTOs;
 using RecipesCore.Identity;
 using RecipesCore.ServiceContracts;
@@ -35,6 +36,12 @@ public class AccountController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> PostRegister(RegisterDTO registerDTO)
     {
+        bool doesEmailExist = await _userManager.Users.AnyAsync(user => user.Email == registerDTO.Email);
+        if (doesEmailExist)
+        {
+            return BadRequest("That Email already exists");
+        }
+
         ApplicationUser user = new()
         {
             Email = registerDTO.Email,
@@ -89,6 +96,7 @@ public class AccountController : ControllerBase
         await _signInManager.SignOutAsync();
         return NoContent();
     }
+
 
     [HttpPost("new-token")]
     public async Task<IActionResult> GenerateNewToken(TokenModel tokenModel)

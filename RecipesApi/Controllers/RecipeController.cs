@@ -42,6 +42,10 @@ public class RecipeController : ControllerBase
     {
         Recipe recipe = await _recipesRepository.SpecificRecipe(id);
         if (recipe is null) return NotFound();
+        //if (recipe.Privacy == "private" && userRecipe.User.Id != User.Id)
+        //{
+        //    _userManager.FindByNameAsync();
+        //}
         return recipe;
     }
 
