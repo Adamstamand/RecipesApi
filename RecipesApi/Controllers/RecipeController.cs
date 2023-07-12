@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using RecipesCore.Identity;
+using Microsoft.Extensions.Primitives;
 
 namespace RecipesApi.Controllers;
 
@@ -37,16 +38,41 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize]
     public async Task<ActionResult<Recipe>> GetSpecificRecipe(int id)
     {
         Recipe recipe = await _recipesRepository.SpecificRecipe(id);
-        if (recipe is null) return NotFound();
-        //if (recipe.Privacy == "private" && userRecipe.User.Id != User.Id)
-        //{
-        //    _userManager.FindByNameAsync();
-        //}
-        return recipe;
+        if (recipe is null) return NotFound("That recipe doesn't exist");
+        if (recipe.Privacy == "public")
+        {
+            return recipe;
+        }
+
+        if (!Request.Headers.TryGetValue("Authorization", out StringValues headerValue))
+        {
+            return BadRequest("Invalid request");
+        }
+        var token = headerValue.FirstOrDefault();
+        if (token is null) return BadRequest();
+
+        var tokenNoBearer = token.Remove(0, 7);
+        var principal = _jwtService.GetPrincipalFromJwtToken(tokenNoBearer);
+        if (principal is null) return BadRequest();
+
+        string? userName = principal.FindFirstValue(JwtRegisteredClaimNames.Name);
+        if (userName is null) return BadRequest("UserName not found");
+
+        ApplicationUser? user = await _userManager.FindByNameAsync(userName);
+        if (user is null)
+        {
+            return BadRequest("Invalid UserName");
+        }
+
+        bool isAccessGranted = await _recipesRepository.CheckRecipeAccess(id, user);
+        if (isAccessGranted)
+        {
+            return recipe;
+        }
+        return Unauthorized();
     }
 
     [HttpPost]

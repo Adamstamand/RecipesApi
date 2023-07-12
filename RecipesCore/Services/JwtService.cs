@@ -80,13 +80,21 @@ public class JwtService : IJwtService
         };
 
         JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
-        ClaimsPrincipal principal = jwtSecurityTokenHandler
-            .ValidateToken(token, 
-            tokenValidationParameters, 
-            out SecurityToken securityToken);
-        JwtSecurityToken? jwtSecurityToken = securityToken as JwtSecurityToken;
+        SecurityToken securityToken;
+        ClaimsPrincipal principal;
+        try
+        {
+            principal = jwtSecurityTokenHandler
+                .ValidateToken(token,
+                tokenValidationParameters,
+                out securityToken);
+        }
+        catch
+        {
+            return null;
+        }
 
-        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
         {
             return null!;
         }
