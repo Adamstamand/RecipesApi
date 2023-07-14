@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using RecipesCore.Entities;
 using RecipesCore.Identity;
 using RecipesCore.RepositoryContracts;
-using RecipesCore.ServiceContracts;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace RecipesApi.Controllers;
 
@@ -17,17 +13,13 @@ public class DashboardController : ControllerBase
 {
 
     private readonly IRecipesRepository _recipesRepository;
-    private readonly IJwtService _jwtService;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserRepository _userRepository;
 
     public DashboardController(IRecipesRepository recipesRepository,
-        IJwtService jwtService,
-        UserManager<ApplicationUser> userManager
-        )
+        IUserRepository userRepository)
     {
         _recipesRepository = recipesRepository;
-        _jwtService = jwtService;
-        _userManager = userManager;
+        _userRepository = userRepository;
     }
 
 
@@ -37,23 +29,17 @@ public class DashboardController : ControllerBase
     {
         if (!Request.Headers.TryGetValue("Authorization", out StringValues headerValue))
         {
-            return BadRequest("Invalid request");
+            return Unauthorized("Invalid token");
         }
-        var token = headerValue.FirstOrDefault();
-        if (token is null) return BadRequest();
 
-        var tokenNoBearer = token.Remove(0, 7);
-        var principal = _jwtService.GetPrincipalFromJwtToken(tokenNoBearer);
-        if (principal is null) return BadRequest();
+        ApplicationUser? user = await _userRepository.FindUserFromJwtHeader(headerValue);
+        if (user is null) return Unauthorized("User not found");
 
-        string? userName = principal.FindFirstValue(JwtRegisteredClaimNames.Name);
-        if (userName is null) return BadRequest("UserName not found");
-
-        ApplicationUser? user = await _userManager.FindByNameAsync(userName);
-        if (user is null) return BadRequest("Invalid UserName");
-
-        var userRecipes = await _recipesRepository.UserRecipes(user);
-
+        Recipe[] userRecipes = await _recipesRepository.UserRecipes(user);
+        if (!userRecipes.Any())
+        {
+            return Ok(new string[1] {"No recipes"});
+        }
         return Ok(userRecipes);
     }
 }

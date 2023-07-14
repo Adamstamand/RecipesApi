@@ -25,6 +25,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRecipesRepository, RecipesRepository>();
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(
        options => options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
@@ -34,7 +35,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
        policy =>
        {
-           policy.WithOrigins("http://localhost:4200").AllowAnyHeader();
+           policy.WithOrigins("http://localhost:4200")
+           .AllowAnyHeader()
+           .AllowAnyMethod();
        });
 });
 

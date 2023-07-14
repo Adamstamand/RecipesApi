@@ -48,7 +48,6 @@ public class JwtService : IJwtService
         return new AuthenticationResponseDTO 
         { 
             Token = token, 
-            UserId = user.Id,
             UserName = user.UserName,
             Expiration = expirationDate,
             RefreshToken = GenerateRefreshToken(),

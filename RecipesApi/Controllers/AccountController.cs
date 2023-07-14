@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using RecipesCore.DTOs;
 using RecipesCore.Identity;
 using RecipesCore.ServiceContracts;
-using RecipesInfrastructure.Migrations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -18,16 +17,14 @@ public class AccountController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IJwtService _jwtService;
 
     public AccountController(UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        RoleManager<ApplicationRole> roleManager, IJwtService jwtService)
+        IJwtService jwtService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _roleManager = roleManager;
         _jwtService = jwtService;
 
     }
@@ -37,10 +34,7 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> PostRegister(RegisterDTO registerDTO)
     {
         bool doesEmailExist = await _userManager.Users.AnyAsync(user => user.Email == registerDTO.Email);
-        if (doesEmailExist)
-        {
-            return BadRequest("That Email already exists");
-        }
+        if (doesEmailExist) return BadRequest("That Email already exists");
 
         ApplicationUser user = new()
         {
@@ -63,7 +57,7 @@ public class AccountController : ControllerBase
         }
 
         Array errorMessage = result.Errors.Select(e => e.Description).ToArray();
-        return Unauthorized(errorMessage);
+        return BadRequest(errorMessage);
     }
 
 
