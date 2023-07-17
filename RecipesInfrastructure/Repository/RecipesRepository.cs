@@ -82,9 +82,53 @@ public class RecipesRepository : IRecipesRepository
         return "deleted";
     }
 
-    public void UpdateRecipe()
+    public async Task<string?> UpdateRecipe(Recipe recipe)
     {
-        throw new NotImplementedException();
+        _context.Recipes.Entry(recipe).State = EntityState.Modified;
+
+        if (recipe.Ingredients is not null)
+        {
+            foreach (Ingredient ingredient in recipe.Ingredients)
+            {
+                if (_context.Ingredients.Any(value => value.Id == ingredient.Id))
+                {
+                    _context.Ingredients.Entry(ingredient).State = EntityState.Modified;
+                }
+                else
+                {
+                    _context.Add(ingredient);
+                }    
+            }
+        }
+
+        if (recipe.Instructions is not null)
+        {
+            foreach (Instruction instruction in recipe.Instructions)
+            {
+                if (_context.Instructions.Any(value => value.Id == instruction.Id))
+                {
+                    _context.Instructions.Entry(instruction).State = EntityState.Modified;
+                }
+                else
+                {
+                    _context.Add(instruction);
+                }  
+            }
+        }
+
+        int amountOfValuesUpdated;
+        try
+        {
+            amountOfValuesUpdated = await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            return null;
+        }
+        if (amountOfValuesUpdated < 1) return null;
+        return "updated";
+        
+        
     }
 
     public async Task<bool> CheckRecipeAccess(int id, ApplicationUser user)
@@ -105,5 +149,11 @@ public class RecipesRepository : IRecipesRepository
             .Include("Ingredients")
             .Include("Instructions")
             .ToArrayAsync();
+    }
+
+    public Task<bool> DoesRecipeExistAlready(Recipe recipeRequest)
+    {
+        return _context.Recipes
+            .AnyAsync(recipe => recipe.Name == recipeRequest.Name);
     }
 }

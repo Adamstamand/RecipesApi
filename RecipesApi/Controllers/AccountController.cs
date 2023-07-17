@@ -26,7 +26,6 @@ public class AccountController : ControllerBase
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtService = jwtService;
-
     }
 
 

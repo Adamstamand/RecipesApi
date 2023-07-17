@@ -72,6 +72,14 @@ public class RecipeController : ControllerBase
         ApplicationUser? user = await _userRepository.FindUserFromJwtHeader(headerValue);
         if (user is null) return Unauthorized("User not found");
 
+        bool isThereAlreadyARecipeWithThatName = await _recipesRepository
+            .DoesRecipeExistAlready(addRecipeRequest);
+
+        if (isThereAlreadyARecipeWithThatName)
+        {
+            return BadRequest("A recipe with that name already exists");
+        }
+
         UserRecipe userRecipe = new()
         {
             Recipe = addRecipeRequest,
@@ -106,5 +114,32 @@ public class RecipeController : ControllerBase
         if (isRecipeDeleted == "deleted") return NoContent();
 
         return BadRequest("Recipe not found");
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<IActionResult> PutRecipe(int id, Recipe recipe)
+    {
+        if (id != recipe.RecipeId) return BadRequest("The IDs don't match");
+
+        if (!Request.Headers.TryGetValue("Authorization", out StringValues headerValue))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        ApplicationUser? user = await _userRepository.FindUserFromJwtHeader(headerValue);
+        if (user is null) return Unauthorized("User not found");
+
+        bool isAccessGranted = await _recipesRepository.CheckRecipeAccess(recipe.RecipeId, user);
+        if (!isAccessGranted)
+        {
+            return Unauthorized("Only the user who created the recipe can update it");
+        }
+
+        string? isRecipeUpdated = await _recipesRepository.UpdateRecipe(recipe);
+        if (isRecipeUpdated == "updated") return NoContent();
+        
+        return BadRequest();
+
     }
 }
