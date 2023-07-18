@@ -6,6 +6,8 @@ public class Instruction
 {
     public int Id { get; set; }
     [Required]
-    public string? Words { get; set; }
+    public required string Words { get; set; }
+    [Required]
     public int Position { get; set; }
+    public int RecipeId { get; set; }
 }

@@ -133,7 +133,7 @@ namespace RecipesInfrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("RecipeId")
+                    b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Words")
@@ -158,7 +158,7 @@ namespace RecipesInfrastructure.Migrations
                     b.Property<int>("Position")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RecipeId")
+                    b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Words")
@@ -174,11 +174,11 @@ namespace RecipesInfrastructure.Migrations
 
             modelBuilder.Entity("RecipesCore.Entities.Recipe", b =>
                 {
-                    b.Property<int>("RecipeId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RecipeId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -189,7 +189,6 @@ namespace RecipesInfrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Photo")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Privacy")
@@ -199,7 +198,7 @@ namespace RecipesInfrastructure.Migrations
                     b.Property<int>("TimeToPrepare")
                         .HasColumnType("int");
 
-                    b.HasKey("RecipeId");
+                    b.HasKey("Id");
 
                     b.ToTable("Recipes");
                 });
@@ -212,10 +211,10 @@ namespace RecipesInfrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("RecipeId")
+                    b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -301,7 +300,7 @@ namespace RecipesInfrastructure.Migrations
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("RefreshTokenExpiration")
+                    b.Property<DateTime?>("RefreshTokenExpiration")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SecurityStamp")
@@ -382,25 +381,33 @@ namespace RecipesInfrastructure.Migrations
                 {
                     b.HasOne("RecipesCore.Entities.Recipe", null)
                         .WithMany("Ingredients")
-                        .HasForeignKey("RecipeId");
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RecipesCore.Entities.Instruction", b =>
                 {
                     b.HasOne("RecipesCore.Entities.Recipe", null)
                         .WithMany("Instructions")
-                        .HasForeignKey("RecipeId");
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RecipesCore.Entities.UserRecipe", b =>
                 {
                     b.HasOne("RecipesCore.Entities.Recipe", "Recipe")
                         .WithMany()
-                        .HasForeignKey("RecipeId");
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("RecipesCore.Identity.ApplicationUser", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Recipe");
 

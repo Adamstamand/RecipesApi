@@ -5,20 +5,18 @@ namespace RecipesCore.Entities;
 
 public class Recipe
 {
-    public int RecipeId { get; set; }
+    public int Id { get; set; }
     [Required]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
     [Required]
-    public string? Description { get; set; }
+    public required string Description { get; set; }
     [Required]
-    public ICollection<Instruction>? Instructions { get; set; }
+    public required ICollection<Instruction> Instructions { get; set; }
     [Required]
-    public ICollection<Ingredient>? Ingredients { get; set; }
-    [Required]
+    public required ICollection<Ingredient> Ingredients { get; set; }
     public string? Photo { get; set; }
     [Required]
     public int TimeToPrepare { get; set; }
-    [Required]
-    [PrivacyValidator]
-    public string? Privacy { get; set; }
+    [Required, PrivacyValidator]
+    public required string Privacy { get; set; }
 }

@@ -17,11 +17,11 @@ public class RecipesRepository : IRecipesRepository
 
     public async Task<Recipe> AddRecipe(UserRecipe addRecipe)
     {
-        await _context.Recipes.AddAsync(addRecipe.Recipe!);
-        await _context.UserRecipes.AddAsync(addRecipe);
+        _context.Recipes.Add(addRecipe.Recipe);
+        _context.UserRecipes.Add(addRecipe);
         await _context.SaveChangesAsync();
 
-        return addRecipe.Recipe!;
+        return addRecipe.Recipe;
     }
 
     public async Task<Recipe[]> AllRecipes()
@@ -41,7 +41,7 @@ public class RecipesRepository : IRecipesRepository
             specificRecipe = await _context.Recipes
                 .Include("Ingredients")
                 .Include("Instructions")
-                .FirstAsync(recipe => recipe.RecipeId == id);
+                .FirstAsync(recipe => recipe.Id == id);
         }
         catch
         {
@@ -54,12 +54,12 @@ public class RecipesRepository : IRecipesRepository
     {
 
         var recipeToDelete = await _context.Recipes
-            .Where(recipe => recipe.RecipeId == id)
+            .Where(recipe => recipe.Id == id)
             .Include("Ingredients")
             .Include("Instructions")
             .Join(_context.UserRecipes,
-                recipe => recipe.RecipeId,
-                userRecipe => userRecipe.Recipe!.RecipeId,
+                recipe => recipe.Id,
+                userRecipe => userRecipe.RecipeId,
                 (recipe, userRecipe) => new { RecipeValue = recipe, UserRecipeValue = userRecipe })
             .FirstOrDefaultAsync();
 
@@ -84,36 +84,52 @@ public class RecipesRepository : IRecipesRepository
 
     public async Task<string?> UpdateRecipe(Recipe recipe)
     {
-        _context.Recipes.Entry(recipe).State = EntityState.Modified;
+        _context.Recipes.Update(recipe);
 
-        if (recipe.Ingredients is not null)
+        int[] newIngredientIds = recipe.Ingredients
+            .Select(ingredient => ingredient.Id)
+            .ToArray();
+
+        int[] ingredientIdsThatMatchThisRecipe = await _context.Ingredients
+            .Where(ingredient => ingredient.RecipeId == recipe.Id)
+            .Select(ingredient => ingredient.Id)
+            .ToArrayAsync();
+
+        int[] ingredientsDeletedOnClientSide = ingredientIdsThatMatchThisRecipe
+            .Except(newIngredientIds)
+            .ToArray();
+
+        if (ingredientsDeletedOnClientSide.Length > 0)
         {
-            foreach (Ingredient ingredient in recipe.Ingredients)
-            {
-                if (_context.Ingredients.Any(value => value.Id == ingredient.Id))
-                {
-                    _context.Ingredients.Entry(ingredient).State = EntityState.Modified;
-                }
-                else
-                {
-                    _context.Add(ingredient);
-                }    
-            }
+            Ingredient[] ingredientsToRemove = await _context.Ingredients
+                .Where(ingredient =>
+                    ingredientsDeletedOnClientSide.Contains(ingredient.Id))
+                .ToArrayAsync();
+
+            _context.Ingredients.RemoveRange(ingredientsToRemove);
         }
 
-        if (recipe.Instructions is not null)
+        int[] newInstructionIds = recipe.Instructions
+            .Select(instruction => instruction.Id)
+            .ToArray();
+
+        int[] instructionIdsThatMatchThisRecipe = await _context.Instructions
+            .Where(instruction => instruction.RecipeId == recipe.Id)
+            .Select(instruction => instruction.Id)
+            .ToArrayAsync();
+
+        int[] instructionsDeletedOnClientSide = instructionIdsThatMatchThisRecipe
+            .Except(newInstructionIds)
+            .ToArray();
+
+        if (instructionsDeletedOnClientSide.Length > 0)
         {
-            foreach (Instruction instruction in recipe.Instructions)
-            {
-                if (_context.Instructions.Any(value => value.Id == instruction.Id))
-                {
-                    _context.Instructions.Entry(instruction).State = EntityState.Modified;
-                }
-                else
-                {
-                    _context.Add(instruction);
-                }  
-            }
+            Instruction[] instructionsToRemove = await _context.Instructions
+                .Where(instruction =>
+                instructionsDeletedOnClientSide.Contains(instruction.Id))
+                .ToArrayAsync();
+
+            _context.Instructions.RemoveRange(instructionsToRemove);
         }
 
         int amountOfValuesUpdated;
@@ -127,14 +143,14 @@ public class RecipesRepository : IRecipesRepository
         }
         if (amountOfValuesUpdated < 1) return null;
         return "updated";
-        
-        
+
+
     }
 
     public async Task<bool> CheckRecipeAccess(int id, ApplicationUser user)
     {
         bool didUserMakeThisRecipe = await _context.UserRecipes.AnyAsync(userRecipe =>
-        userRecipe.Recipe!.RecipeId == id && userRecipe.User!.Id == user.Id);
+        userRecipe.Recipe!.Id == id && userRecipe.User!.Id == user.Id);
         return didUserMakeThisRecipe;
     }
 
@@ -143,8 +159,8 @@ public class RecipesRepository : IRecipesRepository
         return await _context.UserRecipes
             .Where(recipe => recipe.User!.Id == user.Id)
             .Join(_context.Recipes,
-                userRecipe => userRecipe.Recipe!.RecipeId,
-                recipe => recipe.RecipeId,
+                userRecipe => userRecipe.Recipe!.Id,
+                recipe => recipe.Id,
                 (userRecipe, recipe) => recipe)
             .Include("Ingredients")
             .Include("Instructions")

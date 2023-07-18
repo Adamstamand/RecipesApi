@@ -88,7 +88,7 @@ public class RecipeController : ControllerBase
 
         var newRecipe = await _recipesRepository.AddRecipe(userRecipe);
 
-        return CreatedAtAction(nameof(GetAllRecipes), new { id = newRecipe.RecipeId }, newRecipe);
+        return CreatedAtAction(nameof(GetAllRecipes), new { id = newRecipe.Id }, newRecipe);
     }
 
 
@@ -120,7 +120,7 @@ public class RecipeController : ControllerBase
     [Authorize]
     public async Task<IActionResult> PutRecipe(int id, Recipe recipe)
     {
-        if (id != recipe.RecipeId) return BadRequest("The IDs don't match");
+        if (id != recipe.Id) return BadRequest("The IDs don't match");
 
         if (!Request.Headers.TryGetValue("Authorization", out StringValues headerValue))
         {
@@ -130,7 +130,7 @@ public class RecipeController : ControllerBase
         ApplicationUser? user = await _userRepository.FindUserFromJwtHeader(headerValue);
         if (user is null) return Unauthorized("User not found");
 
-        bool isAccessGranted = await _recipesRepository.CheckRecipeAccess(recipe.RecipeId, user);
+        bool isAccessGranted = await _recipesRepository.CheckRecipeAccess(recipe.Id, user);
         if (!isAccessGranted)
         {
             return Unauthorized("Only the user who created the recipe can update it");

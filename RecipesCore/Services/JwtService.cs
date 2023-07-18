@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using RecipesCore.Models;
 
 namespace RecipesCore.Services;
 
@@ -18,7 +19,7 @@ public class JwtService : IJwtService
         _configuration = configuration;
     }
 
-    public AuthenticationResponseDTO CreateJwtToken(ApplicationUser user)
+    public NewToken CreateJwtToken(ApplicationUser user)
     {
         DateTime expirationDate = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:Expiration_Minutes"]));
 
@@ -45,11 +46,10 @@ public class JwtService : IJwtService
         JwtSecurityTokenHandler tokenHandler = new();
         string token = tokenHandler.WriteToken(tokenGenerator);
 
-        return new AuthenticationResponseDTO 
+        return new NewToken 
         { 
             Token = token, 
-            UserName = user.UserName,
-            Expiration = expirationDate,
+            UserName = user.UserName!,
             RefreshToken = GenerateRefreshToken(),
             RefreshTokenExpiration = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:Expiration_Minutes"]))
         };

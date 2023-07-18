@@ -6,5 +6,6 @@ public class Ingredient
 {
     public int Id { get; set; }
     [Required]
-    public string? Words { get; set; }
+    public required string Words { get; set; }
+    public int RecipeId { get; set; }
 }

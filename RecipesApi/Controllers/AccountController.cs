@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipesCore.DTOs;
 using RecipesCore.Identity;
+using RecipesCore.Models;
 using RecipesCore.ServiceContracts;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -30,9 +31,10 @@ public class AccountController : ControllerBase
 
 
     [HttpPost("register")]
-    public async Task<IActionResult> PostRegister(RegisterDTO registerDTO)
+    public async Task<IActionResult> PostRegister(Register registerDTO)
     {
-        bool doesEmailExist = await _userManager.Users.AnyAsync(user => user.Email == registerDTO.Email);
+        bool doesEmailExist = await _userManager.Users
+            .AnyAsync(user => user.Email == registerDTO.Email);
         if (doesEmailExist) return BadRequest("That Email already exists");
 
         ApplicationUser user = new()
@@ -47,10 +49,17 @@ public class AccountController : ControllerBase
         {
             await _signInManager.SignInAsync(user, isPersistent: false);
 
-            var authenticationResponse = _jwtService.CreateJwtToken(user);
-            user.RefreshToken = authenticationResponse.RefreshToken;
-            user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
+            NewToken newToken = _jwtService.CreateJwtToken(user);
+            user.RefreshToken = newToken.RefreshToken;
+            user.RefreshTokenExpiration = newToken.RefreshTokenExpiration;
             await _userManager.UpdateAsync(user);
+
+            AuthenticationResponse authenticationResponse = new()
+            {
+                UserName = newToken.UserName,
+                Token = newToken.Token,
+                RefreshToken = newToken.RefreshToken
+            };
 
             return Ok(authenticationResponse);
         }
@@ -61,7 +70,7 @@ public class AccountController : ControllerBase
 
 
     [HttpPost("login")]
-    public async Task<IActionResult> PostLogIn(LogInDTO logInDTO)
+    public async Task<IActionResult> PostLogIn(LogIn logInDTO)
     {
         var result = await _signInManager.PasswordSignInAsync(logInDTO.Email!,
             logInDTO.Password!, false, false);
@@ -70,12 +79,20 @@ public class AccountController : ControllerBase
         {
             ApplicationUser? user = await _userManager
                 .FindByEmailAsync(logInDTO.Email!);
-            var authenticationResponse = _jwtService.CreateJwtToken(user!);
+            if (user is null) return BadRequest("User not found");
 
-            user!.RefreshToken = authenticationResponse.RefreshToken;
-            user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
-
+            NewToken newToken = _jwtService.CreateJwtToken(user);
+            user.RefreshToken = newToken.RefreshToken;
+            user.RefreshTokenExpiration = newToken.RefreshTokenExpiration;
             await _userManager.UpdateAsync(user);
+
+            AuthenticationResponse authenticationResponse = new()
+            {
+                UserName = newToken.UserName,
+                Token = newToken.Token,
+                RefreshToken = newToken.RefreshToken
+            };
+
             return Ok(authenticationResponse);
         }
 
@@ -92,24 +109,32 @@ public class AccountController : ControllerBase
 
 
     [HttpPost("new-token")]
-    public async Task<IActionResult> GenerateNewToken(TokenModel tokenModel)
+    public async Task<IActionResult> GenerateNewToken(TokenRequest tokenModel)
     {
         ClaimsPrincipal? principal = _jwtService.GetPrincipalFromJwtToken(tokenModel.Token!);
-        if (principal == null) return BadRequest("Invalid Jwt access token");
+        if (principal is null) return BadRequest("Invalid Jwt access token");
 
         string? userName = principal.FindFirstValue(JwtRegisteredClaimNames.Name);
         if (userName is null) return BadRequest("UserName not found in token");
 
         ApplicationUser? user = await _userManager.FindByNameAsync(userName);
-        if (user == null || user.RefreshToken != tokenModel.RefreshToken || user.RefreshTokenExpiration <= DateTime.Now)
+        if (user is null || user.RefreshToken != tokenModel.RefreshToken || 
+            user.RefreshTokenExpiration <= DateTime.Now)
         {
             return BadRequest("Invalid refresh token");
         }
 
-        AuthenticationResponseDTO authenticationResponse = _jwtService.CreateJwtToken(user);
-        user.RefreshToken = authenticationResponse.RefreshToken;
-        user.RefreshTokenExpiration = authenticationResponse.RefreshTokenExpiration;
+        NewToken newToken = _jwtService.CreateJwtToken(user);
+        user.RefreshToken = newToken.RefreshToken;
+        user.RefreshTokenExpiration = newToken.RefreshTokenExpiration;
         await _userManager.UpdateAsync(user);
+
+        AuthenticationResponse authenticationResponse = new()
+        {
+            UserName = newToken.UserName,
+            Token = newToken.Token,
+            RefreshToken = newToken.RefreshToken
+        };
 
         return Ok(authenticationResponse);
     }
