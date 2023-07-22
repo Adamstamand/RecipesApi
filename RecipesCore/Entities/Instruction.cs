@@ -5,7 +5,7 @@ namespace RecipesCore.Entities;
 public class Instruction
 {
     public int Id { get; set; }
-    [Required]
+    [Required, StringLength(100)]
     public required string Words { get; set; }
     [Required]
     public int Position { get; set; }

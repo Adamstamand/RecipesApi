@@ -4,11 +4,11 @@ namespace RecipesCore.DTOs;
 
 public class Register
 {
-    [Required, EmailAddress]
+    [Required, EmailAddress, StringLength(254)]
     public required string Email { get; set; }
-    [Required]
+    [Required, StringLength(30, MinimumLength = 8)]
     public required string Password { get; set; }  
     
-    [Required, Compare("Password")]
+    [Required, Compare("Password"), StringLength(30, MinimumLength = 8)]
     public required string ConfirmPassword { get; set; }
 }

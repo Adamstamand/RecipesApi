@@ -109,16 +109,16 @@ public class AccountController : ControllerBase
 
 
     [HttpPost("new-token")]
-    public async Task<IActionResult> GenerateNewToken(TokenRequest tokenModel)
+    public async Task<IActionResult> GenerateNewToken(TokenRequest tokenRequest)
     {
-        ClaimsPrincipal? principal = _jwtService.GetPrincipalFromJwtToken(tokenModel.Token!);
+        ClaimsPrincipal? principal = _jwtService.GetPrincipalFromJwtToken(tokenRequest.Token!);
         if (principal is null) return BadRequest("Invalid Jwt access token");
 
         string? userName = principal.FindFirstValue(JwtRegisteredClaimNames.Name);
         if (userName is null) return BadRequest("UserName not found in token");
 
         ApplicationUser? user = await _userManager.FindByNameAsync(userName);
-        if (user is null || user.RefreshToken != tokenModel.RefreshToken || 
+        if (user is null || user.RefreshToken != tokenRequest.RefreshToken || 
             user.RefreshTokenExpiration <= DateTime.Now)
         {
             return BadRequest("Invalid refresh token");

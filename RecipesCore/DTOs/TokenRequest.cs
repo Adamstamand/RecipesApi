@@ -4,8 +4,8 @@ namespace RecipesCore.DTOs;
 
 public class TokenRequest
 {
-    [Required]
+    [Required, StringLength(700)]
     public required string Token { get; set; }
-    [Required]
+    [Required, StringLength(300)]
     public required string RefreshToken { get; set; }
 }
