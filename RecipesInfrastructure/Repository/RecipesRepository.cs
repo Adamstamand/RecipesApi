@@ -35,24 +35,14 @@ public class RecipesRepository : IRecipesRepository
 
     public async Task<Recipe?> SpecificRecipe(int id)
     {
-        Recipe specificRecipe;
-        try
-        {
-            specificRecipe = await _context.Recipes
+        return await _context.Recipes
                 .Include("Ingredients")
                 .Include("Instructions")
-                .FirstAsync(recipe => recipe.Id == id);
-        }
-        catch
-        {
-            return null;
-        }
-        return specificRecipe;
+                .FirstOrDefaultAsync(recipe => recipe.Id == id);
     }
 
     public async Task<string?> RemoveRecipe(int id)
     {
-
         var recipeToDelete = await _context.Recipes
             .Where(recipe => recipe.Id == id)
             .Include("Ingredients")

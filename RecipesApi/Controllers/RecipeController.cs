@@ -3,7 +3,6 @@ using RecipesCore.RepositoryContracts;
 using RecipesCore.Entities;
 using Microsoft.AspNetCore.Authorization;
 using RecipesCore.ServiceContracts;
-using Microsoft.AspNetCore.Identity;
 using RecipesCore.Identity;
 using Microsoft.Extensions.Primitives;
 
@@ -14,18 +13,12 @@ namespace RecipesApi.Controllers;
 public class RecipeController : ControllerBase
 {
     private readonly IRecipesRepository _recipesRepository;
-    private readonly IJwtService _jwtService;
-    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserRepository _userRepository;
 
     public RecipeController(IRecipesRepository recipesRepository,
-        IJwtService jwtService,
-        UserManager<ApplicationUser> userManager,
         IUserRepository userRepository)
     {
         _recipesRepository = recipesRepository;
-        _jwtService = jwtService;
-        _userManager = userManager;
         _userRepository = userRepository;
     }
 
@@ -140,6 +133,5 @@ public class RecipeController : ControllerBase
         if (isRecipeUpdated == "updated") return NoContent();
         
         return BadRequest();
-
     }
 }
