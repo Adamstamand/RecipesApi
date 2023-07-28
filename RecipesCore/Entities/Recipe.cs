@@ -8,7 +8,7 @@ public class Recipe
     public int Id { get; set; }
     [Required, StringLength(40)]
     public required string Name { get; set; }
-    [Required, StringLength(500)]
+    [Required, StringLength(1000)]
     public required string Description { get; set; }
     [Required]
     public required ICollection<Instruction> Instructions { get; set; }

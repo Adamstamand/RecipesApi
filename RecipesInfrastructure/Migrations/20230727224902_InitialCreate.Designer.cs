@@ -12,7 +12,7 @@ using RecipesInfrastructure.Data;
 namespace RecipesInfrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230718022320_InitialCreate")]
+    [Migration("20230727224902_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -136,12 +136,16 @@ namespace RecipesInfrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Words")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -166,7 +170,8 @@ namespace RecipesInfrastructure.Migrations
 
                     b.Property<string>("Words")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -185,14 +190,17 @@ namespace RecipesInfrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<string>("Photo")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Privacy")
                         .IsRequired()

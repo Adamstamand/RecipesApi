@@ -5,7 +5,7 @@ namespace RecipesCore.Entities;
 public class Ingredient
 {
     public int Id { get; set; }
-    [Required, StringLength(100)]
+    [Required, StringLength(500)]
     public required string Words { get; set; }
     [Required]
     public int Position { get; set; }
