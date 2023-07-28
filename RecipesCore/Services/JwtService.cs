@@ -21,13 +21,13 @@ public class JwtService : IJwtService
 
     public NewToken CreateJwtToken(ApplicationUser user)
     {
-        DateTime expirationDate = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:Expiration_Minutes"]));
+        DateTime expirationDate = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:Expiration_Minutes"]));
 
         Claim[] claims = new Claim[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
 
-            new Claim(JwtRegisteredClaimNames.Iat, DateTime.Now.ToString()),
+            new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
 
             new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
         };
@@ -51,7 +51,7 @@ public class JwtService : IJwtService
             Token = token, 
             UserName = user.UserName!,
             RefreshToken = GenerateRefreshToken(),
-            RefreshTokenExpiration = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:Expiration_Minutes"]))
+            RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:Expiration_Minutes"]))
         };
     }
 
