@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.HttpLogging;
 var MyAllowSpecificOrigins = "_MyAllowSubdomainPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
+IWebHostEnvironment env;
 
 // Add services to the container.
 
@@ -35,7 +36,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
        policy =>
        {
-           policy.WithOrigins("http://localhost:4200")
+           policy.WithOrigins("http://localhost:4200", "https://black-stone-0f7910e10.3.azurestaticapps.net/")
            .AllowAnyHeader()
            .AllowAnyMethod();
        });
