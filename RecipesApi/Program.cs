@@ -28,7 +28,7 @@ builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-       options => options.UseNpgsql(builder.Configuration.GetConnectionString("POSTGRESQLCONNSTR_Postgres")));
+       options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
 builder.Services.AddCors(options =>
 {
