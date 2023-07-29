@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.HttpLogging;
 var MyAllowSpecificOrigins = "_MyAllowSubdomainPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
-IWebHostEnvironment env;
 
 // Add services to the container.
 
